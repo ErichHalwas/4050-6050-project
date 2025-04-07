@@ -76,6 +76,7 @@ body {
   border: gray solid 1px;
   border-radius: 30px;
   box-sizing: border-box;
+  color: #303030;
 }
 .RegisterMainContent p {
   text-align: center;
@@ -112,6 +113,7 @@ body {
   border: solid black 1px;
   padding: 10px;
   box-sizing: border-box;
+  color: lightgray;
 }
 
 #RegisterButton {
@@ -122,10 +124,10 @@ body {
   height: 100%;
   border: none;
   color: white;
-  background-color: #ffa700;
+  background-color: #FFC85A;
 }
 
 .RegisterMainContent a {
-  color: #ffa700;
+  color: #FFC85A;
   text-decoration: none;
 }
