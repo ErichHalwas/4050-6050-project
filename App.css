@@ -1,3 +1,11 @@
+
+.inter-<uniquifier> {
+          font-family: "Inter", sans-serif;
+          font-optical-sizing: auto;
+          font-weight: <weight>;
+          font-style: normal;
+        }
+
 .App {
   text-align: center;
 }
@@ -73,9 +81,11 @@ body {
   width: 569px;
   height: 724px;
   padding: 30px 60px;
-  border: gray solid 1px;
+  border: rgba(0,0,0,5%) solid 2px;
   border-radius: 30px;
   box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+  background-color: rgba(255, 255, 255, 1%);
   color: #303030;
 }
 .RegisterMainContent p {
@@ -84,6 +94,7 @@ body {
   margin-top: 0px;
   margin-bottom: 30px;
   font-size: 20px;
+  color: #707070;
 }
 
 .RegisterMainContent h5 {
@@ -108,12 +119,13 @@ body {
 .RegisterMainContent input {
   display: block;
   width: 100%;
-  height: 30px;
+  height: 45px;
   border-radius: 5px;
   border: solid black 1px;
-  padding: 10px;
+  padding-left: 10px;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
   box-sizing: border-box;
-  color: lightgray;
 }
 
 #RegisterButton {
@@ -130,4 +142,8 @@ body {
 .RegisterMainContent a {
   color: #FFC85A;
   text-decoration: none;
+}
+
+.Navbar img {
+  height: 60px;
 }
