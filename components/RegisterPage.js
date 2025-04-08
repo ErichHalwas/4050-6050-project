@@ -1,8 +1,10 @@
+import Navbar from "./Navbar";
 
 
 export default function RegisterPage() {
     return (
         <>
+            <Navbar/>
             <MainContent />
         </>
     );
@@ -62,7 +64,7 @@ function SignIn() {
 
 function TermsOfService() {
     return (
-        <p>By creating an account, you agree to the <a href="google.com">Terms of Service</a> and the <a>Privacy Policy</a></p>
+        <p>By creating an account, you agree to the <br /><a href="google.com">Terms of Service</a> and the <a>Privacy Policy</a></p>
     );
 }
 
