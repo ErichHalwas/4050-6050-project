@@ -2,8 +2,15 @@ import { Link } from "react-router";
 import { useState } from "react";
 
 /*
+Currently broken but they will be fixed
+in a later update.
 
+<Link to='/HomePage'>Home</Link>;
+<Link to='/DiscoverPage'>Discover</Link>;
+<Link to='/MapPage'>Map</Link>;
 
+ <Link to='/RegisterPage'>Signup</Link>;
+ <Link to='/LoginPage'>Login</Link>
 
  */
 export default function Navbar() {
@@ -12,14 +19,14 @@ export default function Navbar() {
             <div className="Navbar">
                 <div className="leftNavbar">
                     <Logo />
-                    <Link to='/HomePage'>Home</Link>;
-                    <Link to='/DiscoverPage'>Discover</Link>;
-                    <Link to='/MapPage'>Map</Link>;
+                    <a href='' id={'link'}>Home</a>
+                    <a href='' id={'link'}>Discover</a>
+                    <a href='' id={'link'}>Map</a>
                 </div>
                 <div className="/rightNavbar">
                     <SearchBar />
-                    <Link to='/RegisterPage'>Signup</Link>;
-                    <Link to='/LoginPage'>Login</Link>
+                    <a href='' id={'link'}>Signup</a>
+                    <a href='' id={'link'}>Login</a>
                 </div>
             </div>
         </>
@@ -27,7 +34,9 @@ export default function Navbar() {
 }
 
 function Logo() {
-    // TODO
+    return (
+       <img src={require('../images/logo-generic.png')} alt="logo" />
+    );
 }
 
 function SearchBar() {
