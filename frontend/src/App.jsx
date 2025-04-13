@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Home from "./pages/home.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Navbar from "./components/Navbar.jsx";
+import Maps from "./pages/Maps.jsx";
 
 function Logout() {
     localStorage.clear();
@@ -23,6 +24,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Navbar />}>
                     <Route index element={<Home />} />
+                    <Route path="map" element={<Maps />} />
                     <Route path="*" element={<NotFound />} />
                 </Route>
                 <Route path="/login" element={<Login />} />
