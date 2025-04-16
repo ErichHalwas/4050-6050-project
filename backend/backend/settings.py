@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'corsheaders',
+    'databases.apps.DatabasesConfig'
 ]
 
 MIDDLEWARE = [
