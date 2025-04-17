@@ -8,35 +8,6 @@ function Maps() {
     const [sortBy, setSortBy] = useState("date");
     const [isMapHidden, setMapHidden] = useState(false);
 
-    useEffect(() => {
-        // Checking for geolocation
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-
-                    // Initialize the map
-                    const map = new window.google.maps.Map(mapRef.current, {
-                        center: { lat: latitude, lng: longitude },
-                        zoom: 12,
-                    });
-
-                    // Add a marker at the user's location
-                    new window.google.maps.Marker({
-                        position: { lat: latitude, lng: longitude },
-                        map,
-                        title: "You are here!",
-                    });
-                },
-                (error) => {
-                    console.error("Error getting geolocation:", error);
-                }
-            );
-        } else {
-            console.error("Geolocation is not supported by this browser.");
-        }
-    }, []);
-
     return (
         <>
             <div className={styles.container}>
@@ -98,16 +69,57 @@ function Maps() {
                         <EventCard />
                     </div>
                 </div>
-                <div
-                    ref={mapRef}
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                    }}
-                ></div>
+                <MapComponent />
             </div>
         </>
     );
+}
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const MAP_ID = "6f67fbe2d6e86c96";
+
+function MapComponent() {
+    const mapRef = useRef(null);
+
+    useEffect(() => {
+        const scriptId = "google-maps-script";
+
+        if (!window.google && !document.getElementById(scriptId)) {
+            const script = document.createElement("script");
+            script.id = scriptId;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=beta&libraries=marker`;
+            script.async = true;
+            script.defer = true;
+
+            script.onload = () => initMap();
+            document.head.appendChild(script);
+        } else if (window.google) {
+            initMap();
+        }
+
+        function initMap() {
+            if (!mapRef.current) return;
+
+            navigator.geolocation.getCurrentPosition(
+                ({ coords: { latitude, longitude } }) => {
+                    const map = new window.google.maps.Map(mapRef.current, {
+                        center: { lat: latitude, lng: longitude },
+                        zoom: 12,
+                        mapId: MAP_ID,
+                    });
+
+                    new google.maps.marker.AdvancedMarkerElement({
+                        map,
+                        position: { lat: latitude, lng: longitude },
+                        title: "You are here!",
+                    });
+                },
+                (error) => console.error("Geolocation error:", error)
+            );
+        }
+    }, []);
+
+    return <div ref={mapRef} style={{ height: "100%", width: "100%" }} />;
 }
 
 export default Maps;
