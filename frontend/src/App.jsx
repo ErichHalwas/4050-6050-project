@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Maps from "./pages/Maps.jsx";
 import MainEvent from "./pages/event.jsx";
+import UserProfile from "./pages/profile.jsx";
 
 function Logout() {
     localStorage.clear();
@@ -27,6 +28,7 @@ function App() {
                     <Route index element={<Home />} />
                     <Route path="map" element={<Maps />} />
                     <Route path="event/:id" element={<MainEvent />} />
+                    <Route path="user/:id" element={<UserProfile />} />
                     <Route path="*" element={<NotFound />} />
                 </Route>
                 <Route path="/login" element={<Login />} />
