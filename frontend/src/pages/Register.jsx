@@ -1,24 +1,36 @@
-import Form from "../components/Form.jsx"
+import RegisterForm from "../components/RegisterForm.jsx"
+import LoginForm from "../components/LoginForm.jsx"
 import {useEffect} from "react";
 import "../components/Navbar.jsx"
 import { Link } from "react-router-dom";
 import styles from "../styles/home.module.css";
+import blob3 from "../imgs/blob3.svg";
+import blob4 from "../imgs/blob4.svg";
 
-function Register() {
-    return (
+function Register({login}) {
+    if (login===1) {
+        return(
         <>
-            <div className="circle"></div>
-            <Form />
-            <div id="circle2"><div className="circle"></div></div>
-        </>
-    );
+            <img id="blob1" src={blob4} alt="blob"/>
+            <RegisterForm />
+            <img id="blob2" src={blob3} alt="blob4"/>
+
+        </>);
+    } else {
+        return(
+        <>
+            <img id="blob1" src={blob4} alt="blob"/>
+            <LoginForm />
+            <img id="blob2" src={blob3} alt="blob4"/>
+        </>);
+    }
 }
 
 
 
 
 /*
-import Form from "../components/Form.jsx";
+import RegisterForm from "../components/RegisterForm.jsx";
 import '../styles/Register.css';
 
 
@@ -46,7 +58,7 @@ function MainContent() {
                 <SignIn />
                 <TermsOfService />
             </div>
-        </Form>
+        </RegisterForm>
     );
 }
 
