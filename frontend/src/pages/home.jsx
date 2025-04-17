@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import styles from "../styles/home.module.css";
 import EventCard from "../components/EventCard";
+import BRBlob from "../assets/home_br_blob.svg";
+import TLBlob from "../assets/home_tl_blob.svg";
 
 function Home() {
     useEffect(() => {
@@ -60,7 +62,7 @@ function FeaturedSection() {
                     </div>
                 </div>
                 <div className={styles.blobTopLeft}>
-                    <img></img>
+                    <img src={TLBlob}></img>
                 </div>
             </section>
         </>
@@ -91,7 +93,7 @@ function UpcomingSection() {
                 </div>
 
                 <div className={styles.blobBottomRight}>
-                    <img></img>
+                    <img src={BRBlob}></img>
                 </div>
             </section>
         </>

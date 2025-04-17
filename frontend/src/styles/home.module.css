@@ -98,7 +98,6 @@
 
 .blobBottomRight,
 .blobTopLeft {
-    background: yellow;
     position: absolute;
     z-index: -1;
 }
@@ -106,14 +105,14 @@
 .blobBottomRight {
     bottom: 0;
     right: 0;
-    width: 20vw;
+    width: fit-content;
     height: 45vh;
 }
 
 .blobTopLeft {
     top: 0;
     left: 0;
-    width: 30vw;
+    width: fit-content;
     height: 50vh;
 }
 
