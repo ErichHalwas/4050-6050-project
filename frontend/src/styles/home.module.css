@@ -1,0 +1,124 @@
+.heroSection {
+    height: 100vh;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-image: url("home-bg.webp");
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.heroSection > h1 {
+    color: white;
+    font-size: 5rem;
+    margin: 0;
+    margin-bottom: 1rem;
+}
+
+.heroSection > div {
+    display: flex;
+    gap: 20px;
+}
+
+.wrapper {
+    max-width: 1024px;
+    margin: 0 auto;
+}
+
+.title h2,
+.title p {
+    margin: 0;
+}
+
+.title h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.title {
+    margin: 30px auto;
+    width: fit-content;
+}
+
+.eventContainer {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px auto;
+}
+
+.ctaContainer {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ctaContainer p {
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.white {
+    color: white;
+}
+
+.communitySection {
+    background: #101020;
+}
+
+.halfgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 70px;
+    column-gap: 30px;
+    padding-bottom: 100px;
+    padding-top: 100px;
+}
+
+.halfgrid > div:has(img) {
+    background: blue;
+    min-height: 100px;
+    display: block;
+    position: relative;
+    aspect-ratio: 2 / 1;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.halfgrid > div > img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.blobBottomRight,
+.blobTopLeft {
+    position: absolute;
+    z-index: -1;
+}
+
+.blobBottomRight {
+    bottom: 0;
+    right: 0;
+    width: fit-content;
+    height: 45vh;
+}
+
+.blobTopLeft {
+    top: 0;
+    left: 0;
+    width: fit-content;
+    height: 50vh;
+}
+
+.blobBottomRight > img,
+.blobTopLeft > img {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+}
