@@ -1,14 +1,18 @@
 import Form from "../components/Form.jsx"
+import {useEffect} from "react";
+import "../components/Navbar.jsx"
+import { Link } from "react-router-dom";
+import styles from "../styles/home.module.css";
+
 function Register() {
     return (
         <>
+            <div className="circle"></div>
             <Form />
+            <div id="circle2"><div className="circle"></div></div>
         </>
     );
 }
-
-
-
 
 
 

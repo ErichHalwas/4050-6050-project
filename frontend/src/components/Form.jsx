@@ -44,7 +44,7 @@ function Form({route, method}) {
     }
 
     return(
-    <div class='RegisterMainContent'>
+    <div className='RegisterMainContent'>
 
         <form onSubmit={handleSubmit} className="form-container">
             <h1>{'Get Started Now'}</h1>
@@ -82,7 +82,9 @@ function Form({route, method}) {
                 placeholder="********"
             />
             {/* IF THE 'password' AND 'passwordConfirm' VALUES DO NOT MATCH, IT SHOULD THROW AN ERROR */}
-            <input type='submit' value='Register' class='RegisterButton'></input>
+            <input type='submit' value='Register' id='RegisterButton'></input>
+            <p>Already have an account? <a href="google.com">Sign in</a></p>
+            <p>By creating an account, you agree to the <br /><a href="google.com">Terms of Service</a> and the <a>Privacy Policy</a></p>
         </form>
     </div>
     );
