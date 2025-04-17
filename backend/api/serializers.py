@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note
+from .models import Note, Event
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,4 +22,19 @@ class NoteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get('request')
         validated_data['author'] = request.user
+        return super().create(validated_data)
+
+class EventSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.$fZ")
+    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.$fZ")
+    #creator = serializers.StringRelatedField()
+
+    class Meta:
+        model = Event
+        fields = ['id','title','description','date','location','start_time','end_time','created_at','updated_at','creator']
+        read_only_fields = ['created_at', 'updated_at', 'creator']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        validated_data['creator'] = request.user
         return super().create(validated_data)
