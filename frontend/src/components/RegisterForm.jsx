@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js';
 import '../styles/Register.css';
 
-function Form({route, method}) {
+function RegisterForm({route, method}) {
     const [username, setUsername] = useState(''); /* useStates for Username, password, whether the form is loading */
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -83,11 +83,11 @@ function Form({route, method}) {
             />
             {/* IF THE 'password' AND 'passwordConfirm' VALUES DO NOT MATCH, IT SHOULD THROW AN ERROR */}
             <input type='submit' value='Register' id='RegisterButton'></input>
-            <p>Already have an account? <a href="google.com">Sign in</a></p>
+            <p>Already have an account? <a href="/login">Sign in</a></p>
             <p>By creating an account, you agree to the <br /><a href="google.com">Terms of Service</a> and the <a>Privacy Policy</a></p>
         </form>
     </div>
     );
 }
 
-export default Form;
+export default RegisterForm;
