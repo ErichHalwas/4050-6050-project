@@ -1,6 +1,12 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Event
+from .models import event_info as Event
+from .models import User_Info
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User_Info
+        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
-
+"""
 class EventSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", required=False)
     updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", required=False)
@@ -41,3 +47,4 @@ class EventSerializer(serializers.ModelSerializer):
         # Convert creator to username string in the response
         representation['creator'] = instance.creator.username
         return representation
+"""
