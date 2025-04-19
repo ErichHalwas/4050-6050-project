@@ -11,7 +11,8 @@ class User_Info(models.Model):
     def __str__(self):
         return self.username + '|' + self.email + '|' + self.password
         #return self.username
-    
+ 
+"""
     def get_user_by_username(username):
         return User_Info.objects.get(username = username)
     
@@ -47,11 +48,6 @@ class User_Info(models.Model):
         return rtn_flag
     
     def register_user(username,email,password):
-        """
-        1. validate username does not already exist
-        2. If exist return error
-        3. If does not exist, insert into database
-        """
         rtn_flag = False
         try:
             if type(username) != str:
@@ -67,7 +63,7 @@ class User_Info(models.Model):
             rtn_flag = False
                 
         return rtn_flag
-        
+"""        
         
 class event_info(models.Model):
     #event description
