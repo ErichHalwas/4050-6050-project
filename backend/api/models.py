@@ -3,7 +3,7 @@ from django.utils import timezone
 import traceback
 
 # Create your models here.
-class user_info(models.Model):
+class User_Info(models.Model):
     username = models.CharField(max_length= 48, primary_key = True)
     email = models.CharField(max_length= 128)
     password = models.CharField(max_length= 64)
@@ -13,13 +13,13 @@ class user_info(models.Model):
         #return self.username
     
     def get_user_by_username(username):
-        return user_info.objects.get(username = username)
+        return User_Info.objects.get(username = username)
     
     def get_user_by_email(email):
-        return user_info.objects.get(email = email)
+        return User_Info.objects.get(email = email)
     
     def validate_by_username(username,password):
-        users = user_info.objects.filter(username = username, password = password)
+        users = User_Info.objects.filter(username = username, password = password)
         if users.count() != 1:
             print("username, password not found")
             return False
@@ -31,7 +31,7 @@ class user_info(models.Model):
         try:
             if type(username) != str:
                 raise Exception("username parameter should be string")
-            users = user_info.objects.filter(username = username)
+            users = User_Info.objects.filter(username = username)
             if users.count() == 0:
                 print("user does not exists")
                 rtn_flag = False
@@ -56,11 +56,11 @@ class user_info(models.Model):
         try:
             if type(username) != str:
                 raise Exception("username parameter should be string")
-            users = user_info.objects.filter(username = username)
+            users = User_Info.objects.filter(username = username)
             if users.count() > 0:
                 print("user exists")
             else:
-                user_info.objects.create(username =username, email = email, password = password)
+                User_Info.objects.create(username =username, email = email, password = password)
                 rtn_flag = True                
         except Exception:
             print(traceback.format_exc())
