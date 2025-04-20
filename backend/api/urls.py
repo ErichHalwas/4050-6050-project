@@ -1,7 +1,12 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import UserInfoViewSet, EventInfoViewSet
 
+
+router = DefaultRouter()
+router.register(r'userinfo', UserInfoViewSet)
+router.register(r'eventinfo', EventInfoViewSet)
 urlpatterns = [
-    path('events/', views.EventListCreate.as_view(), name='event-list-create'),
-    path('events/delete/<int:pk>/', views.EventDelete.as_view(), name='event-delete'),
+    path('', include(router.urls)),
+
 ]

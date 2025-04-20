@@ -1,19 +1,46 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.utils import timezone
+import traceback
 
 # Create your models here.
-class Event(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    date = models.DateTimeField(null=False)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True,blank=True)
-    location = models.CharField(max_length=200)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
-
+class User_Info(models.Model):
+    username = models.CharField(max_length= 48, primary_key = True)
+    email = models.CharField(max_length= 128)
+    password = models.CharField(max_length= 64)
+    
     def __str__(self):
-        return self.title
+        return self.username + '|' + self.email + '|' + self.password
+        #return self.username
+ 
+
+class Event_Info(models.Model):
+    #event description
+    title = models.CharField(max_length=128,default = '')
+    description = models.CharField(max_length=512, default = '')
+    host = models.CharField(max_length=128, default = '')
+    url = models.CharField(max_length=256, default = '')
+    attendees = models.IntegerField(default = 0)
+    
+    #date
+    start_time = models.DateTimeField(default = timezone.now, null = False)
+    end_time = models.DateTimeField(default = timezone.now, null = False)
+    time_zone = models.CharField(max_length = 64, default = 'US/Eastern')
+    
+    #location
+    street = models.CharField(max_length=256,default = '')
+    city = models.CharField(max_length=128, default = '')
+    state = models.CharField(max_length=64, default = '')
+    zipcode = models.CharField(max_length=10, default = '')
+    latitude = models.IntegerField(default = 0)
+    longitude = models.IntegerField(default = 0)
+    created_at = models.DateTimeField(default = timezone.now)
+    updated_at = models.DateTimeField(default = timezone.now)
+    
+    
+    def __str__(self):
+        return self.title + '|' + self.description + '|' + self.host + '|' + self.url \
+        + '|' + str(self.attendees) + '|' + str(self.start_time) + '|' + str(self.end_time) + '|' + str(self.time_zone) \
+        + '|' + self.street + '|' + self.city + '|' + self.state + '|' + str(self.zipcode) + '|' + str(self.latitude) \
+        + '|' + str(self.longitude) + '|' + str(self.created_at) + '|' + str(self.updated_at)
+        #return self.title
+            
