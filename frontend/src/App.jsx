@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/login.jsx";
-import Register from "./pages/register.jsx";
+import Register from "./pages/Register.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Home from "./pages/home.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -15,9 +15,9 @@ function Logout() {
     return <Navigate to="/login" replace />;
 }
 
-function RegisterAndLogout() {
+function RegisterAndLogout({login}) {
     localStorage.clear();
-    return <Register />;
+    return <Register login={login}/>;
 }
 
 function App() {
@@ -30,10 +30,14 @@ function App() {
                     <Route path="event/:id" element={<MainEvent />} />
                     <Route path="user/:id" element={<UserProfile />} />
                     <Route path="*" element={<NotFound />} />
+                    <Route path="/signup" element={<RegisterAndLogout login={1}/>} />
+                    <Route path="/login" element={<RegisterAndLogout login={0}/>} />
+
                 </Route>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<RegisterAndLogout />} />
+                <Route path="/login" element={<RegisterAndLogout login={0} />} />
+                <Route path="/register" element={<RegisterAndLogout login={1}/>} />
                 <Route path="/logout" element={<Logout />} />
+                <Route path="/signup" element={<RegisterAndLogout login={1}/>} />
             </Routes>
         </BrowserRouter>
     );
