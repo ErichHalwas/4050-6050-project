@@ -16,14 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-<<<<<<< HEAD:backend/backend/urls.py
-from api.views import CreateUserView, CurrentUserView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-=======
->>>>>>> origin/main:backend/mysite/urls.py
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('api/current_user/', CurrentUserView.as_view(), name='current_user')
 ]

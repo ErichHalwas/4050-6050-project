@@ -1,85 +1,170 @@
-import os
-import sys
-
-
-# Get the path to the project root 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Set up the Django settings module
-os.environ['DJANGO_SETTINGS_MODULE'] = 'backend.settings'  # Point to the correct settings module
-
-# Initialize Django
-import django
-django.setup()
-
-from backend import settings
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
-from api.models import Event
-from datetime import datetime
+from api.models import Event_Info, User_Info
+from django.urls import reverse
+
 
 # Create your tests here.
 
-class EventTestCase(APITestCase):
-    
+class UserInfoViewSetTest(APITestCase):
     def setUp(self):
-        # Create a user for authentication
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
-        
-        # Create token for testuser
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-
-        # Authenticate test client
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
-
-    def test_event_creation(self):
-        # Prepare the event data
-        data = {
-            "title": "Birthday Party",
-            "description": "20th birthday for my friend John",
-            "date": "2025-05-01T00:00:00Z",
-            "location": "Chuck E Cheese",
-            "start_time": "2025-05-01T10:00:00Z",
-            "end_time": "2025-05-01T12:00:00Z",
-            "latitude": 50,
-            "longitude": -84.5
+        self.url = reverse('user_info-list')
+        self.valid_data = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'password': 'securepassword'
         }
+        self.invalid_data = {
+            'username': 'testuser',
+            'email': 'invalid-email',
+            'password': 'securepassword'
+        }
+    
+    def test_create_user_valid(self):
+        response = self.client.post(self.url, self.valid_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(User_Info.objects.count(), 1) # Check if 1 user has been created
+
+    def test_create_user_invalid(self):
+        # Attempt to create user with invalid email
+        response = self.client.post(self.url, self.invalid_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.data)
+        #print(response.data)
+
+    def test_create_user_duplicate(self):
+        self.client.post(self.url, self.valid_data, format='json')
+
+        # Attempt to create duplicate user
+        response = self.client.post(self.url, self.valid_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('username', response.data)
+        #print(response.data)
+
+    def test_get_user(self):
+        # Check GET and assert that the data matches
+        self.client.post(self.url, self.valid_data, format='json')
+
+        response = self.client.get(f'{self.url}{self.valid_data['username']}/', format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        #print(response.data)
+        self.assertEqual(response.data['username'], self.valid_data['username'])
+        self.assertEqual(response.data['email'], self.valid_data['email'])
+      
+    def test_delete_user(self):
+        self.client.post(self.url, self.valid_data, format='json')
+
+        # Test if user deletion is successful
+        response = self.client.delete(f'{self.url}{self.valid_data['username']}/', format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(User_Info.objects.count(), 0)
+
+    def test_get_user_not_found(self):
+        response = self.client.get(f'{self.url}IDONTEXISTUSER/', format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_user(self):
+        response = self.client.post(self.url, self.valid_data, format='json')
+        #print(response.data)
+        updated_data = self.valid_data.copy()
+        updated_data['username'] = 'updatedUser'
+        updated_data['email'] = 'updatedEmail@example.com'
+
+        # Update user
+        response = self.client.put(f'{self.url}{self.valid_data['username']}/', updated_data)
+        #print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], updated_data['username'])
+        self.assertEqual(response.data['email'], updated_data['email'])
+
+    def test_update_user_invalid(self):
+        self.client.post(self.url, self.valid_data, format='json')
         
-        # Create event 
-        response = self.client.post('/api/events/', data, format='json')
+        # Create data with blank username and password but a valid email
+        invalid_data = {'email': '', 
+                        'username': '', 
+                        'password': ''
+                        }
+        response = self.client.put(f'{self.url}{self.valid_data['username']}/', invalid_data)
+        #print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['username'][0], 'This field may not be blank.')
+        self.assertEqual(response.data['password'][0], 'This field may not be blank.')
+        self.assertEqual(response.data['email'][0], 'This field may not be blank.')
 
-        # Assert Event created succesfully
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED) 
-        
-        # Assert event data was captured properly
-        self.assertEqual(response.data['title'], data['title'])
-        self.assertEqual(response.data['description'], data['description'])
-        self.assertEqual(response.data['date'], data['date'])
-        self.assertEqual(response.data['location'], data['location'])
-        self.assertEqual(response.data['start_time'], data['start_time'])
-        self.assertEqual(response.data['end_time'], data['end_time'])
-        self.assertAlmostEqual(response.data['latitude'], data['latitude'], places=3)
-        self.assertAlmostEqual(response.data['longitude'], data['longitude'], places=3)
+class EventInfoViewSetTest(APITestCase):
+    def setUp(self):
+        self.url = reverse('event_info-list')
+        self.valid_data = {
+            'title': 'Birthday Gathering',
+            'description': 'Get together for 21st birthday!',
+            'host': 'Test Guy',
+            'url': 'https://birthday.com',
+            'attendees': 30,
+            'start_time': '2025-04-27T8:00:00Z',
+            'end_time': '2025-04-27T11:00:00Z',
+            'time_zone': 'US/Eastern',
+            'street': '123 Broad Street',
+            'city': 'Athens',
+            'state': 'GA',
+            'zipcode': '30605',
+            'latitude': 40,
+            'longitude': -74
+        }       
 
-        # Assert the automatically set fields are created
-        self.assertTrue('id' in response.data)
-        self.assertTrue('created_at' in response.data)
-        self.assertTrue('updated_at' in response.data)
-        # Assert event creator == creator
-        self.assertEqual(response.data['creator'], self.user.username)
+        self.invalid_data = {
+            'title': '',
+            'latitude': 120,
+            'longitude': -400
+        }
 
-        # Assert event is saved in the database
-        event = Event.objects.get(id=response.data['id'])
-        self.assertEqual(event.creator, self.user)
+    def test_create_event_valid(self):
+        response = self.client.post(self.url, self.valid_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Event_Info.objects.count(), 1)
+        self.assertEqual(response.data['title'], self.valid_data['title'])
+
+    def test_create_event_invalid(self):
+        response = self.client.post(self.url, self.invalid_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('latitude', response.data)
+        self.assertIn('longitude', response.data)
+
+    def test_get_event(self):
+        response = self.client.post(self.url, self.valid_data, format='json')
+        event_id = response.data['id']
+        event_url = reverse('event_info-detail', args=[event_id])
+        response = self.client.get(event_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], self.valid_data['title'])
+    
+    def test_update_event(self):
+        response = self.client.post(self.url, self.valid_data, format='json')
+        event_id = response.data['id']
+        event_url = reverse('event_info-detail', args=[event_id])
+
+        updated_data = {'title': 'Updated Event'}
+
+        response = self.client.patch(event_url, updated_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], updated_data['title'])
+
+        # verify event was updated
+        event = Event_Info.objects.get(id=event_id)
+        self.assertEqual(event.title, updated_data['title'])
+
+    def test_delete_event(self):
+        response = self.client.post(self.url, self.valid_data, format='json')
+        event_id = response.data['id']
+        event_url = reverse('event_info-detail', args=[event_id])
 
         # Delete event
-        event_id = response.data['id']
-        delete_response = self.client.delete(f'/api/events/{event_id}/')
-        self.assertEqual(delete_response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.delete(event_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Try to fetch deleted event
-        get_response = self.client.get(f'/api/events/{event_id}/')
-        self.assertEqual(get_response.status_code, status.HTTP_404_NOT_FOUND)
+        # Assert that attempting to get the deleted event raises the DoesNotExist error
+        with self.assertRaises(Event_Info.DoesNotExist):
+            Event_Info.objects.get(id=event_id)
