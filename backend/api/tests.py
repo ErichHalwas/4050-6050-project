@@ -168,3 +168,30 @@ class EventInfoViewSetTest(APITestCase):
         # Assert that attempting to get the deleted event raises the DoesNotExist error
         with self.assertRaises(Event_Info.DoesNotExist):
             Event_Info.objects.get(id=event_id)
+
+class EventDeletePermissionTest(APITestCase):
+    def setUp(self):
+        self.user = User_Info.objects.create(username='firstUser', email='firstuser@example.com', password='firstUserpassword')
+        self.event = Event_Info.objects.create(
+            title='Delete Test Event',
+            description='Will it get deleted?',
+            host='Bob',
+            latitude=40.0,
+            longitude=-74.0,
+            start_time='2025-05-01T10:00:00Z',
+            end_time='2025-05-01T12:00:00Z',
+            time_zone='UTC',
+            street='123 Lane',
+            city='Testville',
+            state='TS',
+            zipcode='00000',
+            url='http://event.com'
+        )
+        self.url = reverse('event_info-detail', kwargs={'pk': self.event.id})
+
+    def test_unauthenticated_user_delete(self):
+        print(self.event)
+        response = self.client.delete(self.url)
+        print("Delete response Status:", response.status_code)
+        self.assertTrue(Event_Info.objects.filter(id=self.event.id).exists())
+            

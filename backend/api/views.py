@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets,generics
+from rest_framework import viewsets, filters
 from rest_framework.response import Response
 from .models import User_Info, Event_Info
 from .serializers import UserInfoSerializer, EventInfoSerializer
@@ -22,6 +22,8 @@ class UserInfoViewSet(viewsets.ModelViewSet):
 class EventInfoViewSet(viewsets.ModelViewSet):
     queryset = Event_Info.objects.all()
     serializer_class = EventInfoSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'creator_username']
     
     def post(self, request):
         serializer = EventInfoSerializer(data = request.data)

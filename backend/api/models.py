@@ -35,6 +35,9 @@ class Event_Info(models.Model):
     longitude = models.IntegerField(default = 0)
     created_at = models.DateTimeField(default = timezone.now)
     updated_at = models.DateTimeField(default = timezone.now)
+
+    #Creator
+    #creator = models.ForeignKey(User_Info, on_delete=models.CASCADE, null=True, related_name='events')
     
     
     def __str__(self):
