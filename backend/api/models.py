@@ -4,6 +4,10 @@ import traceback
 
 # Create your models here.
 class User_Info(models.Model):
+    @property
+    def is_authenticated(self):
+        return True
+
     username = models.CharField(max_length= 48, primary_key = True)
     email = models.CharField(max_length= 128)
     password = models.CharField(max_length= 64)
