@@ -3,13 +3,14 @@ from rest_framework import serializers
 from .models import Event_Info
 from .models import User_Info
 import re
+from django.contrib.auth.hashers import make_password
 
 class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User_Info
         fields = '__all__'
-        extra_kwargs = {'password': {'write_only': True}} #does not return password column, but can POST all columns
-    
+        extra_kwargs = {'password': {'write_only': True}}
+
     def validate_email(self, value):
         valid = re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', value)
         if not valid:
@@ -17,8 +18,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        user = User_Info.objects.create(**validated_data)
-        return user
+        validated_data['password'] = make_password(validated_data['password'])
+        return User_Info.objects.create(**validated_data)
 
 class EventInfoSerializer(serializers.ModelSerializer):
     start_time = serializers.DateTimeField(format="%m/%d/%Y %I:%M:%S %p %Z", required=False)
