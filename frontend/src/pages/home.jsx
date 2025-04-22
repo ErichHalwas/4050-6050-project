@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "../styles/home.module.css";
 import EventCard from "../components/EventCard";
@@ -13,11 +13,64 @@ function Home() {
         hero.style.marginTop = `-${navbar.clientHeight}px`;
     }, []);
 
+    const token = import.meta.env.VITE_IPINFO_TOKEN;
+
+    const [topEvents, setTopEvents] = useState([]);
+    const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const [zipCode, setZipCode] = useState("00000");
+
+    useEffect(() => {
+        const fetchLocationAndEvents = async () => {
+            try {
+                const token = import.meta.env.VITE_IPINFO_TOKEN;
+                const geoRes = await fetch(
+                    `https://ipinfo.io/json?token=${token}`
+                );
+                const geoData = await geoRes.json();
+
+                setZipCode(geoData.postal);
+                const [lat, lon] = geoData.loc.split(",");
+
+                // Get nearby events
+                const res = await fetch(
+                    `http://localhost:8000/api/eventinfo/nearby/?lat=${lat}&lon=${lon}`
+                );
+                const events = await res.json();
+
+                if (!Array.isArray(events)) return;
+
+                // Top 3 by popularity (attendees length)
+                const top = [...events]
+                    .sort(
+                        (a, b) =>
+                            (b.attendees?.length || 0) -
+                            (a.attendees?.length || 0)
+                    )
+                    .slice(0, 3);
+
+                // First 3 upcoming by start_time (assumes ISO 8601 format)
+                const upcoming = [...events]
+                    .filter((e) => new Date(e.start_time) > new Date())
+                    .sort(
+                        (a, b) =>
+                            new Date(a.start_time) - new Date(b.start_time)
+                    )
+                    .slice(0, 3);
+                setTopEvents(top);
+                setUpcomingEvents(upcoming);
+            } catch (err) {
+                console.error("Error loading events:", err);
+            }
+        };
+
+        fetchLocationAndEvents();
+    }, []);
+
     return (
         <>
             <HeroSection />
-            <FeaturedSection />
-            <UpcomingSection />
+            <FeaturedSection zipCode={zipCode} eventsData={topEvents} />
+            <UpcomingSection zipCode={zipCode} eventsData={upcomingEvents} />
             <CommunitySection />
         </>
     );
@@ -26,7 +79,11 @@ function Home() {
 function HeroSection() {
     return (
         <>
-            <section id="hero" className={styles.heroSection}>
+            <section
+                id="hero"
+                className={styles.heroSection}
+                style={{ backgroundImage: 'url("home-bg.webp")' }}
+            >
                 <h1>Discover Events Near You</h1>
                 <div>
                     <Link className="bright-button">Find Events Now</Link>{" "}
@@ -39,61 +96,76 @@ function HeroSection() {
     );
 }
 
-function FeaturedSection() {
+function FeaturedSection({ zipCode, eventsData = [] }) {
     return (
-        <>
-            <section className={styles.featuredSection}>
-                <div className={styles.wrapper}>
-                    <div className={styles.title}>
-                        <h2>Featured Events</h2>
-                        <p>within 20 miles of 30603</p>
-                    </div>
-                    <div className={styles.eventContainer}>
-                        <EventCard />
-                        <EventCard />
-                        <EventCard />
-                    </div>
-                    <div className={styles.ctaContainer}>
-                        <p>
-                            Didn't find the perfect event? Discover even more
-                            exciting happenings near you!
-                        </p>
-                        <Link className="dark-button">See More Events</Link>
-                    </div>
+        <section className={styles.featuredSection}>
+            <div className={styles.wrapper}>
+                <div className={styles.title}>
+                    <h2>Featured Events</h2>
+                    <p>near {zipCode || "your location"}</p>
                 </div>
-                <div className={styles.blobTopLeft}>
-                    <img src={TLBlob}></img>
+
+                <div className={styles.eventContainer}>
+                    {eventsData.length > 0 ? (
+                        eventsData.map((event) => (
+                            <EventCard key={event.id} event={event} />
+                        ))
+                    ) : (
+                        <p>No featured events found nearby.</p>
+                    )}
                 </div>
-            </section>
-        </>
+
+                <div className={styles.ctaContainer}>
+                    <p>
+                        Didn't find the perfect event? Discover even more
+                        exciting happenings near you!
+                    </p>
+                    <Link to="/map" className="dark-button">
+                        See More Events
+                    </Link>
+                </div>
+            </div>
+
+            <div className={styles.blobTopLeft}>
+                <img src={TLBlob} alt="decorative blob" />
+            </div>
+        </section>
     );
 }
 
-function UpcomingSection() {
+function UpcomingSection({ zipCode, eventsData = [] }) {
     return (
         <>
             <section className={styles.upcomingSection}>
                 <div className={styles.wrapper}>
                     <div className={styles.title}>
                         <h2>Events Happening Soon</h2>
-                        <p>within 20 miles of 30603</p>
+                        <p>near {zipCode || "your location"}</p>
                     </div>
+
                     <div className={styles.eventContainer}>
-                        <EventCard />
-                        <EventCard />
-                        <EventCard />
+                        {eventsData.length > 0 ? (
+                            eventsData.map((event) => (
+                                <EventCard key={event.id} event={event} />
+                            ))
+                        ) : (
+                            <p>No featured events found nearby.</p>
+                        )}
                     </div>
+
                     <div className={styles.ctaContainer}>
                         <p>
                             Didn't find the perfect event? Discover even more
                             exciting happenings near you!
                         </p>
-                        <Link className="dark-button">See More Events</Link>
+                        <Link to="/map" className="dark-button">
+                            See More Events
+                        </Link>
                     </div>
                 </div>
 
                 <div className={styles.blobBottomRight}>
-                    <img src={BRBlob}></img>
+                    <img src={BRBlob} alt="decorative blob" />
                 </div>
             </section>
         </>
@@ -132,11 +204,11 @@ function CommunitySection() {
                         </div>
 
                         <div>
-                            <img></img>
+                            <img src="https://blog.ted.com/wp-content/uploads/sites/2/2014/12/15447807795_55bb873910_k.jpg"></img>
                         </div>
 
                         <div>
-                            <img></img>
+                            <img src="https://info.eventvesta.com/wp-content/uploads/2023/08/Outlandia-Giveaway-social-media-post-example.jpg"></img>
                         </div>
 
                         <div>
@@ -172,7 +244,7 @@ function CommunitySection() {
                         </div>
 
                         <div>
-                            <img></img>
+                            <img src="https://mode.com/resources/images/gallery/google-maps-with-markers-1.png"></img>
                         </div>
                     </div>
 
@@ -181,7 +253,9 @@ function CommunitySection() {
                             Ready to share your event and get it in front of
                             local attendees?
                         </p>
-                        <Link className="bright-button">Add Your Events</Link>
+                        <Link className="bright-button" to="/signup">
+                            Add Your Events
+                        </Link>
                     </div>
                 </div>
             </section>

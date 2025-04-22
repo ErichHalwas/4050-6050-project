@@ -1,68 +1,120 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/mainEvent.module.css";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { fetchWithAuth } from "../../utils/fetchWithAuth";
+import { useAuth } from "../../context/AuthContext";
 
-// Mock fetch function to simulate getting event data
-function fetchEventById(id) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve({
-                title: "Sunset Yoga & Sound Bath in the Garden",
-                description: `Rejuvenate your body and mind with a peaceful outdoor yoga session followed by a meditative sound bath.
-Surrounded by lush greenery and the golden glow of sunset, you'll flow through a gentle sequence designed for all levels.
+async function fetchEventById(id) {
+    const res = await fetch(`http://localhost:8000/api/eventinfo/${id}/`);
+    if (!res.ok) throw new Error("Failed to fetch event");
+    return await res.json();
+}
 
-Afterward, unwind on your mat as healing frequencies wash over you under the open sky.
-
-Mats, refreshments, and cozy blankets provided.
-Come as you are — barefoot and stress-free.`,
-                headerImage: "/imagesrc",
-                creator: {
-                    displayName: "Jane Doe",
-                    username: "@janedow",
-                },
-                details: {
-                    Attendees: "30 attendees",
-                    Date: "April 21, 2025",
-                    Time: "6:45pm - 8:00pm",
-                    Venue: "Sunset Garden Studio",
-                    Location: "1024 Willow Ln, Savannah, GA",
-                    RSVP: "Required",
-                    Sounds: "Crystal Bowls, Chimes, Wind Harp",
-                },
-            });
-        }, 500);
-    });
+async function fetchUser(username) {
+    const res = await fetch(`http://localhost:8000/api/userinfo/${username}/`);
+    if (!res.ok) throw new Error("Failed to fetch user");
+    return await res.json();
 }
 
 export default function EventCard() {
     const { id } = useParams();
     const [eventData, setEventData] = useState(null);
+    const [creatorData, setCreatorData] = useState(null);
 
     useEffect(() => {
-        fetchEventById(id).then(setEventData);
+        const loadEvent = async () => {
+            try {
+                const event = await fetchEventById(id);
+                setEventData(event);
+
+                const creator = await fetchUser(event.host);
+                setCreatorData(creator);
+            } catch (err) {
+                console.error("Error loading event:", err);
+            }
+        };
+
+        loadEvent();
     }, [id]);
 
-    if (!eventData) return <div className={styles.wrapper}>Loading...</div>;
+    if (!eventData || !creatorData)
+        return <div className={styles.wrapper}>Loading...</div>;
+
+    const { user } = useAuth();
 
     return (
         <div className={styles.wrapper}>
-            {header(eventData.headerImage)}
-            {creator(eventData.creator)}
+            <Header user={user} event={eventData} />
+            {creator({
+                username: creatorData.username,
+                email: creatorData.email,
+                pfp: creatorData.pfp_url,
+            })}
             {mainContent(eventData.title, eventData.description)}
-            {details(eventData.details)}
+            {details({
+                Attendees: `${eventData.attendees.length} attending`,
+                Date: eventData.start_time?.split(" ")[0] || "",
+                Time:
+                    eventData.start_time?.split(" ")[1] +
+                    " - " +
+                    eventData.end_time?.split(" ")[1],
+                Location: `${eventData.street}, ${eventData.city}, ${eventData.state} ${eventData.zipcode}`,
+            })}
         </div>
     );
 }
 
-function header(headerImage) {
+function Header({ user, event }) {
+    const [isSaved, setIsSaved] = useState(false);
+    const [isAttending, setIsAttending] = useState(false);
+
+    useEffect(() => {
+        if (event && user) {
+            setIsSaved(event.saved_by.includes(user.username));
+            setIsAttending(event.attendees.includes(user.username));
+        }
+    }, [event, user]);
+
+    const handleSaveToggle = async () => {
+        const endpoint = isSaved ? "unsave_event" : "save_event";
+        const res = await fetchWithAuth(
+            `http://localhost:8000/api/eventinfo/${event.id}/${endpoint}/`,
+            { method: "POST" }
+        );
+        if (res.ok) setIsSaved(!isSaved);
+    };
+
+    const handleAttendToggle = async () => {
+        const endpoint = isAttending ? "unattend" : "attend";
+        const res = await fetchWithAuth(
+            `http://localhost:8000/api/eventinfo/${event.id}/${endpoint}/`,
+            { method: "POST" }
+        );
+        if (res.ok) setIsAttending(!isAttending);
+    };
+
     return (
         <div className={styles.header}>
             <div className={styles.buttons}>
-                <button>Save</button>
-                <button>Attend</button>
+                <button
+                    onClick={handleSaveToggle}
+                    className={`${styles.button} ${
+                        isSaved ? styles.active : ""
+                    }`}
+                >
+                    {isSaved ? "Unsave" : "Save"}
+                </button>
+                <button
+                    onClick={handleAttendToggle}
+                    className={`${styles.button} ${
+                        isAttending ? styles.active : ""
+                    }`}
+                >
+                    {isAttending ? "Unattend" : "Attend"}
+                </button>
             </div>
             <img
-                src={headerImage}
+                src={event.image_url}
                 alt="Event Header"
                 className={styles.image}
             />
@@ -70,15 +122,17 @@ function header(headerImage) {
     );
 }
 
-function creator({ displayName, username }) {
+function creator({ username, email, pfp }) {
     return (
-        <div className={styles.creator}>
-            <div className={styles.profilePic}></div>
-            <div>
-                <p className={styles.displayName}>{displayName}</p>
-                <p className={styles.username}>{username}</p>
+        <Link className={styles.creator} to={`/user/${username}`}>
+            <div className={styles.profilePic}>
+                <img src={pfp} className="pfp"></img>
             </div>
-        </div>
+            <div>
+                <p className={styles.displayName}>{username}</p>
+                <p className={styles.username}>{email}</p>
+            </div>
+        </Link>
     );
 }
 

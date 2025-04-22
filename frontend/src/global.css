@@ -107,3 +107,22 @@ section {
     padding-bottom: 50px;
     position: relative;
 }
+
+.pfp {
+    border-radius: 500px;
+    object-fit: cover;
+    width: 100%;
+    height: fit-content;
+}
+
+.pfp-container {
+    width: 50px;
+    height: 50px;
+}
+
+.userInfoContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: none !important;
+}

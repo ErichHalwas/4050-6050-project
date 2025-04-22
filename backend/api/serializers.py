@@ -22,22 +22,54 @@ class UserInfoSerializer(serializers.ModelSerializer):
         return User_Info.objects.create(**validated_data)
 
 class EventInfoSerializer(serializers.ModelSerializer):
-    start_time = serializers.DateTimeField(format="%m/%d/%Y %I:%M:%S %p %Z", required=False)
-    end_time = serializers.DateTimeField(format="%m/%d/%Y %I:%M:%S %p %Z", required=False)
+    start_time = serializers.DateTimeField(
+        format="%m/%d/%Y %I:%M:%S %p %Z",
+        required=False
+    )
+    end_time = serializers.DateTimeField(
+        format="%m/%d/%Y %I:%M:%S %p %Z",
+        required=False
+    )
+    attendees = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field='username'
+    )
+    saved_by = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field='username'
+    )
 
     class Meta:
         model = Event_Info
-        fields = ['id', 'title', 'description', 'host', 'url', 'attendees', 'start_time', 'end_time', 'time_zone', 'street', 'city', 'state', 'zipcode', 'latitude', 'longitude']
-    
+        fields = [
+            'id', 'title', 'description', 'host', 'url',
+            'attendees', 'start_time', 'end_time', 'time_zone',
+            'street', 'city', 'state', 'zipcode',
+            'latitude', 'longitude', 'image_url', 'saved_by'
+        ]
+        extra_kwargs = {
+            'host': {'required': False},
+            'attendees': {'required': False},
+            'saved_by': {'required': False},
+        }
+
     def create(self, validated_data):
+        # Remove M2M fields first
+        attendees = validated_data.pop('attendees', [])
+        saved_by = validated_data.pop('saved_by', [])
+
+        # Create the event
         event = Event_Info.objects.create(**validated_data)
+
+        # Assign M2M fields after creation
+        event.attendees.set(attendees)
+        event.saved_by.set(saved_by)
+
         return event
 
     def validate_latitude(self, value):
         if value < -90 or value > 90:
             raise serializers.ValidationError("Latitude must be between -90 and 90 degrees")
         return value
-    
+
     def validate_longitude(self, value):
         if value < -180 or value > 180:
             raise serializers.ValidationError("Longitude must be between -180 and 180 degrees")

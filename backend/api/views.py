@@ -1,3 +1,4 @@
+from math import cos, radians
 from tokenize import TokenError
 from django.shortcuts import render
 from rest_framework import viewsets, generics, status
@@ -9,6 +10,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+import requests
+from django.conf import settings
 
 class TokenViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
@@ -19,9 +23,9 @@ class TokenViewSet(viewsets.ViewSet):
         try:
             user = User_Info.objects.get(username=username)
         except User_Info.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            user = None
 
-        if not check_password(password, user.password):
+        if not user or not check_password(password, user.password):
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
         class FakeUser:
@@ -31,7 +35,12 @@ class TokenViewSet(viewsets.ViewSet):
         refresh = RefreshToken.for_user(fake_user)
         access_token = str(refresh.access_token)
 
-        response = Response({'message': 'Logged in'})
+        response = Response({
+            'message': 'Logged in',
+            'username': user.username,
+            'email': user.email,
+            'pfp_url': request.build_absolute_uri(user.pfp_url.url) if user.pfp_url else None
+        })
         response.set_cookie('access', access_token, httponly=True, secure=False, max_age=300)
         response.set_cookie('refresh', str(refresh), httponly=True, secure=False, max_age=3600*24)
         return response
@@ -63,10 +72,45 @@ class UserInfoViewSet(viewsets.ModelViewSet):
     queryset = User_Info.objects.all()
     serializer_class = UserInfoSerializer
 
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    lookup_field = 'username'
+
+    
     def get_permissions(self):
-        if self.action in ['create', 'list']:  # Anyone can register or view all
+        if self.action in ['create', 'list', 'retrieve', 'hosted', 'attending', 'saved']:
             return [AllowAny()]
         return [IsAuthenticated()]
+
+    @action(detail=True, methods=['get'])
+    def hosted(self, request, username=None):
+        user = self.get_object()
+        events = user.events_hosted.all()
+        serializer = EventInfoSerializer(events, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def attending(self, request, username=None):
+        user = self.get_object()
+        events = user.events_attending.all()
+        serializer = EventInfoSerializer(events, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def saved(self, request, username=None):
+        user = self.get_object()
+        events = user.saved_events.all()
+        serializer = EventInfoSerializer(events, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        user = request.user
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'pfp_url': request.build_absolute_uri(user.pfp_url.url) if user.pfp_url else None,
+        })
+
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -84,17 +128,81 @@ class UserInfoViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You can only delete your own account.")
         return super().destroy(request, *args, **kwargs)
 
-    def post(self, request):
-        serializer = UserInfoSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+    @action(detail=True, methods=['post'], url_path='upload-pfp')
+    def upload_pfp(self, request, pk=None):
+        instance = self.get_object()
+        if request.user.username != instance.username:
+            raise PermissionDenied("You can only upload your own profile picture.")
+        file = request.FILES.get('pfp')
+        if not file:
+            return Response({'error': 'No file uploaded'}, status=400)
+        instance.pfp_url = file
+        instance.save()
+        return Response({
+            'message': 'Profile picture uploaded',
+            'pfp_url': request.build_absolute_uri(instance.pfp_url.url)
+        })
 
 class EventInfoViewSet(viewsets.ModelViewSet):
     queryset = Event_Info.objects.all()
     serializer_class = EventInfoSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'nearby_events']:
+            return [AllowAny()]
+        return super().get_permissions()
+    
+    @action(detail=False, methods=['get'], url_path='nearby')
+    def nearby_events(self, request):
+        try:
+            lat = float(request.query_params.get('lat'))
+            lon = float(request.query_params.get('lon'))
+        except (TypeError, ValueError):
+            return Response({"error": "lat and lon query parameters are required"}, status=400)
+
+        # ~1 degree of lat ≈ 69 miles, 1 degree of lon ≈ 69 * cos(latitude)
+        mile_offset = 20
+        lat_range = mile_offset / 69.0
+        lon_range = mile_offset / (69.0 * cos(radians(lat)))
+
+        events = Event_Info.objects.filter(
+            latitude__gte=lat - lat_range,
+            latitude__lte=lat + lat_range,
+            longitude__gte=lon - lon_range,
+            longitude__lte=lon + lon_range,
+        )
+
+        serializer = self.get_serializer(events, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def save_event(self, request, pk=None):
+        event = self.get_object()
+        user = request.user
+        event.saved_by.add(user)
+        return Response({'message': 'Event saved'})
+
+    @action(detail=True, methods=['post'])
+    def unsave_event(self, request, pk=None):
+        event = self.get_object()
+        user = request.user
+        event.saved_by.remove(user)
+        return Response({'message': 'Event unsaved'})
+
+    @action(detail=True, methods=['post'])
+    def attend(self, request, pk=None):
+        event = self.get_object()
+        user = request.user
+        event.attendees.add(user)
+        return Response({'message': 'Marked as attending'})
+
+    @action(detail=True, methods=['post'])
+    def unattend(self, request, pk=None):
+        event = self.get_object()
+        user = request.user
+        event.attendees.remove(user)
+        return Response({'message': 'Unmarked as attending'})
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -115,4 +223,36 @@ class EventInfoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if not self.request.user or not self.request.user.is_authenticated:
             raise NotAuthenticated("You must be logged in to create events.")
-        serializer.save(host=self.request.user.username)
+
+        event = serializer.save(host=self.request.user)
+
+        # Geocode the address
+        full_address = f"{event.street}, {event.city}, {event.state}, {event.zipcode}"
+        api_key = settings.OPENCAGE_API_KEY
+        url = f"https://api.opencagedata.com/geocode/v1/json?q={full_address}&key={api_key}"
+
+        try:
+            res = requests.get(url)
+            res.raise_for_status()
+            data = res.json()
+
+            if data["results"]:
+                coords = data["results"][0]["geometry"]
+                event.latitude = coords["lat"]
+                event.longitude = coords["lng"]
+                event.save()
+        except Exception as e:
+            print("Geocoding failed:", e)
+    
+    parser_classes = [MultiPartParser, FormParser]
+    @action(detail=True, methods=['post'], url_path='upload-image')
+    def upload_image(self, request, pk=None):
+        instance = self.get_object()
+        if request.user.username != instance.host:
+            raise PermissionDenied("You can only upload images for your own events.")
+        file = request.FILES.get('image')
+        if not file:
+            return Response({'error': 'No file uploaded'}, status=400)
+        instance.image_url = file
+        instance.save()
+        return Response({'message': 'Event image uploaded', 'image_url': instance.image_url.url})

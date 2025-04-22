@@ -1,7 +1,10 @@
 import { Link, Outlet } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 function Navbar() {
+    const { user, logout } = useAuth();
+
     return (
         <>
             <div className="navbar">
@@ -10,21 +13,42 @@ function Navbar() {
                     <Link to="/" id={"link"}>
                         Home
                     </Link>
-                    <Link to="/discover" id={"link"}>
-                        Discover
-                    </Link>
-                    <Link to="/map"  id={"link"}>
+
+                    <Link to="/map" id={"link"}>
                         Map
                     </Link>
                 </div>
                 <div className="rightNavbar">
                     <SearchBar />
-                    <Link to="/signup" id={"link"}>
-                        Signup
-                    </Link>
-                    <Link to="/login" id={"link"}>
-                        Login
-                    </Link>
+                    {user ? (
+                        <>
+                            <Link
+                                to={`/user/${user.username}`}
+                                className="userInfoContainer"
+                            >
+                                <div className="pfp-container">
+                                    <img
+                                        src={user.pfp_url}
+                                        className="pfp"
+                                        alt="pfp"
+                                        width="32"
+                                        height="32"
+                                    />
+                                </div>
+                                <span>{user.username}</span>
+                            </Link>
+                            <button onClick={logout}>Logout</button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/signup" id={"link"}>
+                                Signup
+                            </Link>
+                            <Link to="/login" id={"link"}>
+                                Login
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
             <Outlet />
@@ -33,7 +57,7 @@ function Navbar() {
 }
 
 function Logo() {
-    return <img alt="logo" />;
+    return <img alt="logo" src="https://placehold.co/40x40?text=Logo" />;
 }
 
 function SearchBar() {

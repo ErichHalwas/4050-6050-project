@@ -4,3 +4,13 @@ api/__pycache__
 api/migrations/__pycache__
 mysite/__pycache__
 db.sqlite3
+
+# Ignore all images in event_images except default.jpg
+media/event_images/*
+!media/event_images/default.jpg
+
+# Ignore all images in pfps except default.jpg
+media/pfps/*
+!media/pfps/default.jpg
+
+.env
