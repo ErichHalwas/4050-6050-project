@@ -184,7 +184,7 @@ function MapComponent({ events = [] }) {
                                     />
                                     <strong>${event.title}</strong><br/>
                                     ${event.city}, ${event.state}<br/>
-                                    <a href="/events/${event.id}" style="color: #2563eb; text-decoration: none;">View Event</a>
+                                    <a href="/event/${event.id}" style="color: #2563eb; text-decoration: none;">View Event</a>
                                 </div>
                             `);
                             infoWindow.open(map, marker);
