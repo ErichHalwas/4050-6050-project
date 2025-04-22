@@ -26,7 +26,7 @@ class User_Info(models.Model):
 class Event_Info(models.Model):
     #event description
     title = models.CharField(max_length=128,default = '')
-    description = models.CharField(max_length=512, default = '')
+    description = models.CharField(max_length=5120, default = '')
     host = models.ForeignKey(User_Info, on_delete=models.CASCADE, related_name='events_hosted')
     url = models.CharField(max_length=256, default = '')
     attendees = models.ManyToManyField(User_Info, related_name='events_attending', blank=True)
