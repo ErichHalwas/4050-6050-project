@@ -13,7 +13,7 @@ function Navbar() {
                     <Link to="/discover" id={"link"}>
                         Discover
                     </Link>
-                    <Link to="/map" id={"link"}>
+                    <Link to="/map"  id={"link"}>
                         Map
                     </Link>
                 </div>

@@ -15,31 +15,31 @@ function LoginForm({route, method}) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        console.log("handlesubmit");
         try {
-            const response = await api.post(route, {
-                username,
-                password,
+            setLoading(true);
+
+            const response = await fetch('http://localhost:8000/api/token/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({username, password})
             });
-            if (response.status !== 201 && response.status !== 200) { // This if statement ends the function if the api response throws an error
-                console.error('Error during login:', response.data);
-                setLoading(false);
-                return;
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
             }
-            if (method === "login") {
-                localStorage.setItem(ACCESS_TOKEN, response.data.access);
-                localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
-                navigate('/');
-            } else {
-                navigate('/login');
-            }
-        } catch (error) {
-            console.error('Error during login:', error);
+            const data = await response.json();
+            console.log(response.status);
+            console.log("hey it worked");
+            navigate('/');
+        }  catch (error) {
+            console.error("Error during form submission:", error);
+            alert("An error occurred. Please try again.");
         } finally {
             setLoading(false);
         }
     }
-
     return(
         <div className='RegisterMainContent'>
 
