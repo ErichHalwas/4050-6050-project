@@ -17,6 +17,40 @@ function RegisterForm({route, method}) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("handlesubmit");
+
+        if (password !== passwordConfirm) { // confirms that the passwords match
+            console.error("Passwords do not match.");
+            alert("Passwords do not match. Please try again.");
+            return;
+        }
+        try {
+            setLoading(true);
+
+            const response = await fetch('http://localhost:8000/api/userinfo/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({username, email, password})
+            });
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+            const data = await response.json();
+            console.log(response.status);
+            navigate('/login');
+        }  catch (error) {
+            console.error("Error during form submission:", error);
+            alert("An error occurred. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    /*
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         setLoading(true);
         try {
             const response = await api.post(route, {
@@ -41,7 +75,7 @@ function RegisterForm({route, method}) {
         } finally {
             setLoading(false);
         }
-    }
+     */
 
     return(
     <div className='RegisterMainContent'>
