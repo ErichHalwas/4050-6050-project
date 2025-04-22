@@ -142,3 +142,109 @@
     margin: 0;
     white-space: pre-wrap;
 }
+
+.creatorContainer {
+    display: flex;
+    align-items: center;
+}
+
+.actions {
+    margin-right: 0;
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.editButton,
+.deleteButton {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.editButton {
+    background-color: #4caf50;
+    color: white;
+}
+
+.editButton:hover {
+    background-color: #45a049;
+}
+
+.deleteButton {
+    background-color: #f44336;
+    color: white;
+}
+
+.deleteButton:hover {
+    background-color: #d32f2f;
+}
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.modalContent h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.modalContent form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modalContent input[type="text"],
+.modalContent input[type="datetime-local"],
+.modalContent input[type="file"],
+.modalContent textarea {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.95rem;
+}
+
+.modalContent textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modalContent button[type="submit"],
+.modalContent button[type="button"] {
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modalContent button[type="submit"] {
+    background-color: #2563eb;
+    color: white;
+}
+
+.modalContent button[type="button"] {
+    background-color: #e5e7eb;
+    color: black;
+}

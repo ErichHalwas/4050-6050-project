@@ -208,7 +208,7 @@ class EventInfoViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         if not request.user or not request.user.is_authenticated:
             raise NotAuthenticated("You must be logged in to update events.")
-        if request.user.username != instance.host:
+        if request.user.username != instance.host.username:
             raise PermissionDenied("You can only update your own events.")
         return super().update(request, *args, **kwargs)
 
@@ -216,7 +216,7 @@ class EventInfoViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         if not request.user or not request.user.is_authenticated:
             raise NotAuthenticated("You must be logged in to delete events.")
-        if request.user.username != instance.host:
+        if request.user.username != instance.host.username:
             raise PermissionDenied("You can only delete your own events.")
         return super().destroy(request, *args, **kwargs)
 
