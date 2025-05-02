@@ -131,11 +131,42 @@
 }
 
 .modalContent button[type="submit"] {
-    background-color: #2563eb;
+    background-color: #FFC85A;
     color: white;
 }
 
 .modalContent button[type="button"] {
     background-color: #e5e7eb;
     color: black;
+}
+
+.profileEdit {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.profileEdit button {
+    width: 60%;
+    background-color: #f9fafb;
+    border: 1px solid #d1d5db;
+    padding: 1rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.profileEdit button:hover {
+    background-color: #f3f4f6;
+}
+
+.deleteAccount {
+    transition: background-color .5s ease !important;
+}
+.deleteAccount:hover {
+    color: white;
+    background-color: red !important;
 }
