@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import {redirect, useNavigate, useParams} from "react-router-dom";
 import styles from "../styles/profilePage.module.css";
 import EventCard from "../components/EventCard";
 import { useAuth } from "../../context/AuthContext";
@@ -53,9 +53,11 @@ export default function ProfilePage() {
         attending: [],
     });
     const { id } = useParams();
-    const { user } = useAuth();
+    const { user , logout} = useAuth();
 
     const tabs = ["created", "saved", "attending", "profile"]; // This array defines the available tabs
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -151,11 +153,6 @@ export default function ProfilePage() {
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
-        if (profileForm.username === "") {
-            console.log("Hello");
-            setProfileForm({...profileForm, username: id});
-
-        }
         try {
             const response = await fetch(`http://localhost:8000/api/userinfo/${id}/`, {
                     method: "PATCH",
@@ -205,11 +202,32 @@ export default function ProfilePage() {
                 );
             }
             const data = await response.json();
+            await handleDeleteAccount();
             handleClosePassCheck();
         } catch (error) {
             console.error("Error during form submission:", error);
             alert("An error occurred. Please try again.");
         }
+    };
+
+    const handleDeleteAccount = async () => {
+        try {
+            const res = await fetch(`http://localhost:8000/api/userinfo/${id}/`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (!res.ok) {
+
+                throw new Error(`Error: ${res.status}`);
+                alert("Account deleted successfully.");
+            }
+            await logout();
+
+            navigate("/signup");
+        } catch (error) {
+            console.error("Error deleting account:", error);
+            alert("There was an error deleting the account:");
+            }
     };
 
 
@@ -396,41 +414,7 @@ export default function ProfilePage() {
                                 type="email"
                                 placeholder="New Email Address"
                                 onChange = {(e) =>
-                                    setProfileForm({...profileForm, email: e.target.value})
-                                }
-                            />
-                            <button type="submit">Update Email Address</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-            {showUsernameEditModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modalContent}>
-                        <h2>Edit Username</h2>
-                        <form onSubmit={handleProfileUpdate}>
-                            <input
-                                type="username"
-                                placeholder="New Username"
-                                onChange = {(e) =>
-                                    setProfileForm({...profileForm, username: e.target.value})
-                                }
-                            />
-                            <button type="submit">Update Email Address</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-            {showPasswordEditModal && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modalContent}>
-                        <h2>Edit Password</h2>
-                        <form onSubmit={handleProfileUpdate}>
-                            <input
-                                type="password"
-                                placeholder="New Password"
-                                onChange = {(e) =>
-                                    setProfileForm({...profileForm, password: e.target.value})
+                                    setProfileForm({...profileForm, username: id, email: e.target.value})
                                 }
                             />
                             <button type="submit">Update Email Address</button>
@@ -486,11 +470,7 @@ export default function ProfilePage() {
                 {activeTab === "profile" ? (
                         <div className={styles.profileEdit}>
                             <h2>Edit Profile Info</h2>
-                            <button onClick={handleOpenUsernameEditModal}>Change Username</button>
-                            <br/>
                             <button onClick={handleOpenEmailEditModal}>Change Email</button>
-                            <br/>
-                            <button onClick={handleOpenPasswordEditModal}>Change Password</button>
                             <br/>
                             <button onClick={handleOpenContinueCheck} className={styles.deleteAccount}>Delete Account</button>
 
