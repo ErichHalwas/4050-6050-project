@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import {redirect, useNavigate, useParams} from "react-router-dom";
 import styles from "../styles/profilePage.module.css";
 import EventCard from "../components/EventCard";
 import { useAuth } from "../../context/AuthContext";
@@ -7,6 +7,7 @@ import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 function User({ username }) {
     const [userData, setUserData] = useState(null);
+
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -31,7 +32,6 @@ function User({ username }) {
     }, [username]);
 
     if (!userData) return null;
-
     return (
         <div className={styles.user}>
             <div className={styles.pfp}>
@@ -46,15 +46,18 @@ function User({ username }) {
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState("created");
+    const [password, setPassword] = useState("");
     const [events, setEvents] = useState({
         created: [],
         saved: [],
         attending: [],
     });
     const { id } = useParams();
-    const { user } = useAuth();
+    const { user , logout} = useAuth();
 
-    const tabs = ["created", "saved", "attending"];
+    const tabs = ["created", "saved", "attending", "profile"]; // This array defines the available tabs
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -94,9 +97,31 @@ export default function ProfilePage() {
     }, [id]);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showPassCheckModal, setShowPassCheckModal] = useState(false);
+    const [showContinueModal, setShowContinueModal] = useState(false);
+    const [showEmailEditModal, setShowEmailEditModal] = useState(false);
+    const [showUsernameEditModal, setShowUsernameEditModal] = useState(false);
+    const [showPasswordEditModal, setShowPasswordEditModal] = useState(false);
 
     const handleOpenModal = () => setShowCreateModal(true);
     const handleCloseModal = () => setShowCreateModal(false);
+
+    const handleOpenPassCheck = () => setShowPassCheckModal(true);
+    const handleClosePassCheck = () => setShowPassCheckModal(false);
+
+    const handleOpenEmailEditModal = () => setShowEmailEditModal(true);
+    const handleCloseEmailEditModal = () => setShowEmailEditModal(false);
+
+    const handleOpenUsernameEditModal = () => setShowUsernameEditModal(true);
+    const handleCloseUsernameEditModal = () => setShowUsernameEditModal(false);
+
+    const handleOpenPasswordEditModal = () => setShowPasswordEditModal(true);
+    const handleClosePasswordEditModal = () => setShowPasswordEditModal(false);
+
+
+
+    const handleOpenContinueCheck = () => setShowContinueModal(true);
+    const handleCloseContinueCheck = () => setShowContinueModal(false);
 
     const [eventForm, setEventForm] = useState({
         title: "",
@@ -109,6 +134,102 @@ export default function ProfilePage() {
         state: "",
         zipcode: "",
     });
+    const [profileForm, setProfileForm] = useState({
+        username: "",
+        email: "",
+        password: "",
+    });
+
+    const handleContinue = async (e) => {
+        e.preventDefault();
+        setShowContinueModal(false);
+        setShowPassCheckModal(true);
+    };
+    const handleCancel = async (e) => {
+        e.preventDefault()
+        setShowContinueModal(false);
+    };
+
+
+    const handleProfileUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`http://localhost:8000/api/userinfo/${id}/`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        username: profileForm.username,
+                        email: profileForm.email,
+                    }),
+                }
+            );
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+            alert("Email Updated!");
+            handleCloseUsernameEditModal();
+            handleClosePasswordEditModal();
+            handleCloseEmailEditModal();
+        } catch (error) {
+            console.error("Error during profile update:", error);
+            alert("An error occured. Please try again.");
+        }
+    };
+
+
+
+    const handlePassVerif = async (e) => {
+        e.preventDefault();
+
+        try {
+            const response = await fetch(
+                "http://localhost:8000/api/token/login/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ username: id, password }),
+                }
+            );
+            if (!response.ok) {
+                throw new Error(
+                    `Error: ${response.status} - ${response.statusText}`
+                );
+            }
+            const data = await response.json();
+            await handleDeleteAccount();
+            handleClosePassCheck();
+        } catch (error) {
+            console.error("Error during form submission:", error);
+            alert("An error occurred. Please try again.");
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        try {
+            const res = await fetch(`http://localhost:8000/api/userinfo/${id}/`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (!res.ok) {
+
+                throw new Error(`Error: ${res.status}`);
+                alert("Account deleted successfully.");
+            }
+            await logout();
+
+            navigate("/signup");
+        } catch (error) {
+            console.error("Error deleting account:", error);
+            alert("There was an error deleting the account:");
+            }
+    };
+
 
     const handleCreateEvent = async (e) => {
         e.preventDefault();
@@ -147,6 +268,7 @@ export default function ProfilePage() {
             console.error("Error creating event:", err);
         }
     };
+
 
     return (
         <div className={styles.wrapper}>
@@ -283,6 +405,52 @@ export default function ProfilePage() {
                 </div>
             )}
 
+            {showEmailEditModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <h2>Edit Email Address</h2>
+                        <form onSubmit={handleProfileUpdate}>
+                            <input
+                                type="email"
+                                placeholder="New Email Address"
+                                onChange = {(e) =>
+                                    setProfileForm({...profileForm, username: id, email: e.target.value})
+                                }
+                            />
+                            <button type="submit">Update Email Address</button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showContinueModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <h2>Are you sure?</h2>
+                        <button type="button" onClick={handleContinue}>Continue</button>
+                        <br/>
+                        <button type="button" onClick={handleCancel}>Cancel</button>
+                    </div>
+                </div>
+            )}
+
+            {showPassCheckModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <h2>Enter your password to continue</h2>
+
+                        <form onSubmit={handlePassVerif}>
+                            <input
+                                type="password"
+                                placeholder="********"
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <button type="submit">Continue</button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             <div className={styles.tabs}>
                 {tabs.map((tab) => (
                     <button
@@ -296,12 +464,25 @@ export default function ProfilePage() {
                     </button>
                 ))}
             </div>
+            {/*content rendering section*/}
 
             <div className={styles.eventContainer}>
-                {events[activeTab].map((event, i) => (
-                    <EventCard key={`${activeTab}-${i}`} event={event} />
-                ))}
+                {activeTab === "profile" ? (
+                        <div className={styles.profileEdit}>
+                            <h2>Edit Profile Info</h2>
+                            <button onClick={handleOpenEmailEditModal}>Change Email</button>
+                            <br/>
+                            <button onClick={handleOpenContinueCheck} className={styles.deleteAccount}>Delete Account</button>
+
+                            {/* Replace this div with profile info eiditng form */}
+                        </div>
+                    ) : (
+                        events[activeTab].map((event, i) => (
+                            <EventCard key={`${activeTab}-${i}`} event={event} />
+                        ))
+                )}
             </div>
         </div>
     );
 }
+

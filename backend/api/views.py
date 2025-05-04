@@ -13,6 +13,7 @@ from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 import requests
 from django.conf import settings
+from django.db.models import Q
 
 class TokenViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
@@ -148,11 +149,28 @@ class EventInfoViewSet(viewsets.ModelViewSet):
     serializer_class = EventInfoSerializer
     permission_classes = [IsAuthenticated]
 
+
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'nearby_events']:
             return [AllowAny()]
         return super().get_permissions()
-    
+
+    @action(detail=False, methods=["get"], url_path="search", permission_classes=[AllowAny])
+    def search(self, request):
+        query = request.query_params.get("q", "")
+        if not query:
+            return Response([])
+
+        events = Event_Info.objects.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(city__icontains=query) |
+            Q(state__icontains=query)
+        )
+
+        serializer = self.get_serializer(events, many=True, context={"request": request})
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'], url_path='nearby')
     def nearby_events(self, request):
         try:

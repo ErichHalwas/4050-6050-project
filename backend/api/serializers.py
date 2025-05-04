@@ -21,6 +21,11 @@ class UserInfoSerializer(serializers.ModelSerializer):
         validated_data['password'] = make_password(validated_data['password'])
         return User_Info.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+        return super().update(instance, validated_data)
+
 class EventInfoSerializer(serializers.ModelSerializer):
     start_time = serializers.DateTimeField(
         format="%m/%d/%Y %I:%M:%S %p %Z",

@@ -1,6 +1,8 @@
 import { Link, Outlet } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useEffect } from "react";
+import mapPin from "../assets/map-pin.svg";
 
 function Navbar() {
     const { user, logout } = useAuth();
@@ -57,28 +59,57 @@ function Navbar() {
 }
 
 function Logo() {
-    return <img alt="logo" src="https://placehold.co/40x40?text=Logo" />;
+    return <img alt="logo" src={mapPin} style={{ height: "3rem" }} />;
 }
+
 
 function SearchBar() {
     const [searchContent, setSearchContent] = useState("");
-    const [results, setResults] = useState(" ");
+    const [results, setResults] = useState([]);
 
-    function handleSCChange(content) {
-        setSearchContent(content);
-    }
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            if (searchContent.trim() === "") {
+                setResults([]);
+                return;
+            }
+
+            fetch(`http://localhost:8000/api/eventinfo/search/?q=${encodeURIComponent(searchContent)}`)
+                .then((res) => res.json())
+                .then((data) => setResults(data))
+                .catch((err) => console.error("Search failed:", err));
+        }, 300); // debounce the API call
+
+        return () => clearTimeout(delayDebounce);
+    }, [searchContent]);
 
     return (
-        <div className={"SearchBar"}>
+        <div className="SearchBar">
             <input
                 type="text"
                 placeholder="Search for an event"
-                onChange={(e) => handleSCChange(e.target.value)}
                 value={searchContent}
+                onChange={(e) => setSearchContent(e.target.value)}
             />
-            <ul className={"searchResult"}></ul>
+            {results.length > 0 && (
+                <ul>
+                    {results.map((event) => (
+                        <li key={event.id}>
+                            <Link
+                                to={`/event/${event.id}`}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f5f5f5"}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
+                            >
+                                {event.title}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
         </div>
     );
 }
+
 
 export default Navbar;

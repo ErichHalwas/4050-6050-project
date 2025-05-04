@@ -3,6 +3,7 @@ import api from '../api.js';
 import { useNavigate } from 'react-router-dom';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants.js';
 import '../styles/Register.css';
+import {useAuth} from "../../context/AuthContext.jsx";
 
 function RegisterForm({route, method}) {
     const [username, setUsername] = useState(''); /* useStates for Username, password, whether the form is loading */
@@ -13,6 +14,8 @@ function RegisterForm({route, method}) {
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
+    const { user, logout } = useAuth();
+
     const name = method === 'login' ? 'Login' : 'Register';
 
     const handleSubmit = async (e) => {
